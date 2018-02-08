@@ -77,6 +77,10 @@ class SceneViewController: UIViewController {
             // 最后把 transform 传给 node 的 position
             node.position = worldCoord
             node.scale = SCNVector3(0.01, 0.01, 0.01)
+            if let eulerAngles = self.sceneView.session.currentFrame?.camera.eulerAngles {
+                node.eulerAngles = SCNVector3(eulerAngles.x, eulerAngles.y, eulerAngles.z + .pi / 2)
+            }
+
             print("position: \(node.position)")
 
             // 最后把精灵加入到 sceneView 的根节点
