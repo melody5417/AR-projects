@@ -9,23 +9,28 @@
 import UIKit
 import SceneKit
 import ARKit
+import Vision
 
 class SceneViewController: UIViewController {
+
+    var visionRequests = [VNRequest]()
+    let visionQueue = DispatchQueue(label: "com.melody5417.WhatYouSee")
+    var latestPrediction: String = "" {
+        didSet {
+            print(latestPrediction)
+        }
+    }
+
+    // MARK: Life cycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        sceneView.frame = self.view.bounds
-        sceneView.autoenablesDefaultLighting = true
-        sceneView.delegate = self
-        sceneView.debugOptions = ARSCNDebugOptions.showWorldOrigin
-        view.addSubview(sceneView)
+        setupScene()
+        setupVision()
+        setupEvents()
 
-        let scene = SCNScene()
-        sceneView.scene = scene
-
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(gestureRecognizer:)))
-        view.addGestureRecognizer(tapGesture)
+        loopVisionUpdate()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -41,6 +46,64 @@ class SceneViewController: UIViewController {
         sceneView.session.pause()
     }
 
+    // MARK: Setup
+
+    func setupScene() {
+        sceneView.frame = self.view.bounds
+        sceneView.autoenablesDefaultLighting = true
+        sceneView.delegate = self
+        sceneView.debugOptions = ARSCNDebugOptions.showWorldOrigin
+        view.addSubview(sceneView)
+
+        let scene = SCNScene()
+        sceneView.scene = scene
+    }
+
+    func setupEvents() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(gestureRecognizer:)))
+        view.addGestureRecognizer(tapGesture)
+    }
+
+    func setupVision() {
+        guard let model = try? VNCoreMLModel(for: Inceptionv3().model) else {
+            fatalError("CoreMl model setup failed")
+        }
+
+        let classifyRst = VNCoreMLRequest(model: model) { [weak self] (request, error) in
+            guard error == nil else { return }
+            guard let results = request.results else { return }
+
+            let classifications = (results[0] as? VNClassificationObservation)!.identifier
+            self?.latestPrediction = classifications
+        }
+        classifyRst.imageCropAndScaleOption = .centerCrop
+        visionRequests = [classifyRst]
+    }
+
+    func loopVisionUpdate() {
+        visionQueue.async {
+            self.updateCoreML()
+            self.loopVisionUpdate()
+        }
+    }
+
+    // MARK: -
+    func updateCoreML() {
+        // Get Camera Image as RGB
+        let pixbuff : CVPixelBuffer? = (sceneView.session.currentFrame?.capturedImage)
+        if pixbuff == nil { return }
+        let ciImage = CIImage(cvPixelBuffer: pixbuff!)
+
+        let imageRequestHandler = VNImageRequestHandler(ciImage: ciImage, options: [:])
+        do {
+            try imageRequestHandler.perform(self.visionRequests)
+        } catch {
+            print(error)
+        }
+    }
+
+
+
     // MARK: Statusbar
     override var prefersStatusBarHidden : Bool {
         return true
@@ -49,20 +112,16 @@ class SceneViewController: UIViewController {
     // MARK: Interaction
 
     @objc func handleTap(gestureRecognizer: UITapGestureRecognizer) {
-
-        // Take the screen space tap coordinates and pass them to the hitTest method on the ARSCNView instance
         let tapPoint = gestureRecognizer.location(in: self.sceneView)
         let results = sceneView.hitTest(tapPoint, types: [.featurePoint])
 
-        // If the intersection ray passes through any plane geometry they will be returned, with the planes
-        // ordered by distance from the camera
         if let closestResult = results.first {
             // Get Coordinates of HitTest
             let transform : matrix_float4x4 = closestResult.worldTransform
             let worldCoord : SCNVector3 = SCNVector3Make(transform.columns.3.x, transform.columns.3.y, transform.columns.3.z)
 
             let dimension: CGFloat = 1
-            let textGeo = SCNText(string: "hello", extrusionDepth: dimension)
+            let textGeo = SCNText(string: self.latestPrediction, extrusionDepth: dimension)
             textGeo.font = UIFont.boldSystemFont(ofSize: 10)
             textGeo.alignmentMode = kCAAlignmentCenter
 
@@ -74,7 +133,6 @@ class SceneViewController: UIViewController {
             textGeo.chamferRadius = dimension
             let node = SCNNode(geometry: textGeo)
 
-            // 最后把 transform 传给 node 的 position
             node.position = worldCoord
             node.scale = SCNVector3(0.01, 0.01, 0.01)
             if let eulerAngles = self.sceneView.session.currentFrame?.camera.eulerAngles {
@@ -83,7 +141,6 @@ class SceneViewController: UIViewController {
 
             print("position: \(node.position)")
 
-            // 最后把精灵加入到 sceneView 的根节点
             sceneView.scene.rootNode.addChildNode(node)
         }
     }

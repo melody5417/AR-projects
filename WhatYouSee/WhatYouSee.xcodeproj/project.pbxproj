@@ -13,6 +13,7 @@
 		4F4D9BC920295F4600970FFF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F4D9BC820295F4600970FFF /* Assets.xcassets */; };
 		4F4D9BCC20295F4600970FFF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4F4D9BCA20295F4600970FFF /* LaunchScreen.storyboard */; };
 		4F4D9BD42029610800970FFF /* SceneViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4D9BD32029610800970FFF /* SceneViewController.swift */; };
+		4FA97147202C53EA00F602C1 /* Inceptionv3.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 4FA97146202C53EA00F602C1 /* Inceptionv3.mlmodel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		4F4D9BCB20295F4600970FFF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4F4D9BCD20295F4600970FFF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F4D9BD32029610800970FFF /* SceneViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneViewController.swift; sourceTree = "<group>"; };
+		4FA97146202C53EA00F602C1 /* Inceptionv3.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = Inceptionv3.mlmodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +58,7 @@
 		4F4D9BC020295F4600970FFF /* WhatYouSee */ = {
 			isa = PBXGroup;
 			children = (
+				4FA97146202C53EA00F602C1 /* Inceptionv3.mlmodel */,
 				4F4D9BC120295F4600970FFF /* AppDelegate.swift */,
 				4F4D9BC320295F4600970FFF /* ViewController.swift */,
 				4F4D9BC520295F4600970FFF /* Main.storyboard */,
@@ -140,6 +143,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4F4D9BD42029610800970FFF /* SceneViewController.swift in Sources */,
+				4FA97147202C53EA00F602C1 /* Inceptionv3.mlmodel in Sources */,
 				4F4D9BC420295F4600970FFF /* ViewController.swift in Sources */,
 				4F4D9BC220295F4600970FFF /* AppDelegate.swift in Sources */,
 			);
