@@ -122,7 +122,7 @@ class SceneViewController: UIViewController {
 
             let dimension: CGFloat = 1
             let textGeo = SCNText(string: self.latestPrediction, extrusionDepth: dimension)
-            textGeo.font = UIFont.boldSystemFont(ofSize: 10)
+            textGeo.font = UIFont.boldSystemFont(ofSize: 1)
             textGeo.alignmentMode = kCAAlignmentCenter
 
             let material = SCNMaterial()
@@ -132,6 +132,10 @@ class SceneViewController: UIViewController {
             textGeo.firstMaterial?.isDoubleSided = true
             textGeo.chamferRadius = dimension
             let node = SCNNode(geometry: textGeo)
+
+            let boundingBox = node.boundingBox
+            node.pivot = SCNMatrix4MakeTranslation((boundingBox.max.x - boundingBox.min
+                .x)/2.0, (boundingBox.max.y - boundingBox.min.y)/2.0, boundingBox.min.z)
 
             node.position = worldCoord
             node.scale = SCNVector3(0.01, 0.01, 0.01)
