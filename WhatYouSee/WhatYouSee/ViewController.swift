@@ -10,8 +10,6 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    @IBOutlet weak var historyTextView: UITextView!
-
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -22,8 +20,5 @@ class ViewController: UIViewController {
         self.navigationController?.pushViewController(vc, animated: true)
     }
 
-    @IBAction func reset(_ sender: Any) {
-        historyTextView.text = ""
-    }
 }
 

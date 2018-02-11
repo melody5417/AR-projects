@@ -26,9 +26,12 @@ class SceneViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        navigationController?.navigationBar.isHidden = true
+
         setupScene()
         setupVision()
         setupEvents()
+        setupDebug()
 
         loopVisionUpdate()
     }
@@ -59,6 +62,11 @@ class SceneViewController: UIViewController {
         sceneView.scene = scene
     }
 
+    func setupDebug() {
+        debugView.frame = CGRect(x: 0, y: 0, width: self.view.bounds.width, height: 50)
+        view.addSubview(debugView)
+    }
+
     func setupEvents() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(gestureRecognizer:)))
         view.addGestureRecognizer(tapGesture)
@@ -70,11 +78,26 @@ class SceneViewController: UIViewController {
         }
 
         let classifyRst = VNCoreMLRequest(model: model) { [weak self] (request, error) in
+            guard let `self` = self else { return }
             guard error == nil else { return }
             guard let results = request.results else { return }
 
-            let classifications = (results[0] as? VNClassificationObservation)!.identifier
-            self?.latestPrediction = classifications
+            let classifications = results[0...1]
+                .flatMap({ $0 as? VNClassificationObservation })
+                .map({ "\($0.identifier) \(String(format:"- %.2f", $0.confidence))" })
+                .joined(separator: "\n")
+
+            DispatchQueue.main.async {
+                var debugText:String = ""
+                debugText += classifications
+                self.debugView.text = debugText
+
+                var objectName:String = "…"
+                objectName = classifications.components(separatedBy: "-")[0]
+                objectName = objectName.components(separatedBy: ",")[0]
+                self.latestPrediction = objectName
+            }
+
         }
         classifyRst.imageCropAndScaleOption = .centerCrop
         visionRequests = [classifyRst]
@@ -155,6 +178,15 @@ class SceneViewController: UIViewController {
     private let sceneView: ARSCNView = {
         let view = ARSCNView(frame: CGRect.zero)
         view.showsStatistics = true
+        return view
+    }()
+
+    private let debugView: UITextView = {
+        let view = UITextView()
+        view.isEditable = false
+        view.font = UIFont.systemFont(ofSize: 10)
+        view.backgroundColor = UIColor.darkGray.withAlphaComponent(0.2)
+        view.textColor = UIColor.brown
         return view
     }()
 
